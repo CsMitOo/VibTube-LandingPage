@@ -72,9 +72,23 @@ export function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
       if (!response.ok) {
         // Se for erro 404, significa que o servidor não está disponível
         if (response.status === 404) {
-          throw new Error("Servidor não disponível. Por favor, ative o Modo Demo para testar.");
+          throw new Error("Servidor não disponível (404). Verifique o deploy da Edge Function.");
         }
-        throw new Error(data.error || "Erro ao processar pagamento");
+        
+        // Se o erro vier do backend (Edge Function)
+        if (data.error) {
+            // Erro específico do Mercado Pago sobre back_urls
+            if (data.error.includes("back_url.success must be defined")) {
+                throw new Error("Erro de configuração de URL: O Mercado Pago rejeitou a URL de retorno. Verifique se o token está correto e se a URL de preview é pública.");
+            }
+            // Erro de token
+            if (data.error.includes("MERCADO_PAGO_ACCESS_TOKEN not configured")) {
+                throw new Error("Erro de configuração: MERCADO_PAGO_ACCESS_TOKEN não está configurado no Supabase Secrets.");
+            }
+            throw new Error(data.error);
+        }
+        
+        throw new Error(`Erro desconhecido: Status ${response.status}`);
       }
 
       // Redirecionar para URL de pagamento do Mercado Pago
@@ -88,8 +102,8 @@ export function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
       const errorMessage = err instanceof Error ? err.message : "Erro ao processar checkout";
       
       // Se for erro de conexão, sugerir modo demo
-      if (errorMessage.includes("Failed to fetch") || errorMessage.includes("NetworkError") || errorMessage.includes("404")) {
-        setError("⚠️ Servidor não disponível. Ative o Modo Demo abaixo para testar.");
+      if (errorMessage.includes("Failed to fetch") || errorMessage.includes("NetworkError")) {
+        setError("⚠️ Falha na conexão com o servidor. Ative o Modo Demo para testar ou verifique o deploy da Edge Function.");
       } else {
         setError(errorMessage);
       }
