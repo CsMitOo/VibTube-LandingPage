@@ -26,24 +26,12 @@ export async function handleCheckout(c: Context) {
       return c.json({ error: "Dados incompletos" }, 400);
     }
 
-    // 1. Determinar o Origin (Prioriza o valor enviado pelo frontend)
-    let safeOrigin = body.origin && body.origin.startsWith("http") 
-      ? body.origin 
-      : (SUPABASE_URL ? SUPABASE_URL.replace("/functions/v1", "") : "http://localhost:3000"); 
+    // 1. Determinar o Origin: Usamos a URL do Supabase como base para garantir que o Mercado Pago aceite.
+    let safeOrigin = SUPABASE_URL ? SUPABASE_URL.replace("/functions/v1", "") : "http://localhost:3000";
       
     // Limpar barra final se presente
     if (safeOrigin.endsWith('/')) {
         safeOrigin = safeOrigin.slice(0, -1);
-    }
-
-    // Se o origin for localhost, usamos a URL base do Supabase como fallback obrigatório,
-    // pois o Mercado Pago não aceita localhost em produção/sandbox sem configuração especial.
-    if (safeOrigin.includes("localhost") && SUPABASE_URL) {
-        safeOrigin = SUPABASE_URL.replace("/functions/v1", "");
-        if (safeOrigin.endsWith('/')) {
-            safeOrigin = safeOrigin.slice(0, -1);
-        }
-        console.warn("Localhost detected. Using Supabase URL as safeOrigin for Mercado Pago back_urls:", safeOrigin);
     }
     
     if (!safeOrigin || !safeOrigin.startsWith("http")) {
