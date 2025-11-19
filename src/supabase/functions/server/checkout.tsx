@@ -1,5 +1,6 @@
 import type { Context } from "npm:hono";
 import * as kv from "./kv_store.tsx";
+import { sendConfirmationEmail } from "./email.tsx"; // Import the new email utility
 
 // Você precisará configurar seu Access Token do Mercado Pago
 const MERCADO_PAGO_ACCESS_TOKEN = Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN");
@@ -98,7 +99,7 @@ export async function handleCheckout(c: Context) {
       throw new Error(data.message || "Erro ao criar preferência de pagamento");
     }
 
-    // Salvar informações do pedido
+    // Salvar informações do pedido (usando o ID da preferência)
     const orderId = data.id;
     await kv.set(`order:${orderId}`, {
       orderId,
@@ -163,9 +164,12 @@ export async function handleWebhook(c: Context) {
       // Atualizar status da assinatura
       if (payment.status === "approved") {
         const email = payment.external_reference;
-        
+        const name = payment.payer?.first_name || "Cliente"; // Tenta obter o nome do objeto de pagamento
+        const orderId = payment.id;
+
         await kv.set(`subscription:${email}`, {
           email,
+          name,
           status: "active",
           planType: "annual",
           startDate: new Date().toISOString(),
@@ -175,6 +179,14 @@ export async function handleWebhook(c: Context) {
         });
 
         console.log("Subscription activated for:", email);
+        
+        // 🚀 ENVIAR EMAIL DE CONFIRMAÇÃO
+        try {
+          await sendConfirmationEmail({ to: email, name: name, orderId: orderId });
+        } catch (emailError) {
+          console.error("Failed to send confirmation email:", emailError);
+          // Continua processando o webhook mesmo se o email falhar
+        }
       }
     }
 

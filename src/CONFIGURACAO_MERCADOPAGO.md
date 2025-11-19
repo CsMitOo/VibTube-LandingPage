@@ -1,4 +1,4 @@
-# 🏦 Configuração Mercado Pago - VIBTUBE ACADEMY
+# 🏦 Configuração Mercado Pago & Email - VIBTUBE ACADEMY
 
 ## 📍 Informações do Projeto
 
@@ -13,12 +13,15 @@
 ### Já Configuradas:
 - ✅ `MERCADO_PAGO_ACCESS_TOKEN` - Token de acesso do Mercado Pago
 
-### Como obter o Access Token:
-1. Acesse: https://www.mercadopago.com.br/developers/panel
-2. Vá em **"Credenciais"** ou **"Credentials"**
-3. **Para Testes:** Copie o **Access Token de Teste**
-4. **Para Produção:** Copie o **Access Token de Produção**
-5. Cole no Supabase (já foi configurado como `MERCADO_PAGO_ACCESS_TOKEN`)
+### Necessário Configurar para Emails:
+- ⚠️ `RESEND_API_KEY` - Chave de API do Resend (ou outro serviço de email)
+
+### Como configurar o `RESEND_API_KEY`:
+1. Crie uma conta no Resend (https://resend.com) ou serviço similar.
+2. Obtenha sua chave de API.
+3. No painel do Supabase, vá em **Settings > Edge Functions > Secrets**.
+4. Adicione um novo secret com o nome `RESEND_API_KEY` e cole sua chave.
+5. **Importante:** Você também precisa verificar um domínio ou usar o email de teste do Resend (`onboarding@resend.dev`).
 
 ---
 
@@ -89,7 +92,8 @@ POST https://ivcuanklgyjprgmevyel.supabase.co/functions/v1/make-server-efd1629b/
 5. **Usuário paga** (PIX, Cartão, Boleto)
 6. **Mercado Pago notifica** via webhook
 7. **Backend ativa** assinatura automaticamente
-8. **Usuário recebe** email de confirmação
+8. **Backend envia** email de confirmação (Novo!)
+9. **Usuário recebe** email de confirmação
 
 ---
 
@@ -173,6 +177,7 @@ CPF: 12345678909
 - [ ] Colar URL do webhook
 - [ ] Testar com cartão de teste
 - [ ] Verificar webhook no histórico
+- [ ] **Configurar `RESEND_API_KEY` no Supabase Secrets**
 - [ ] Modo Produção: Trocar para Access Token de Produção
 
 ---
@@ -184,10 +189,15 @@ CPF: 12345678909
 - API Reference: https://www.mercadopago.com.br/developers/pt/reference
 - Webhooks: https://www.mercadopago.com.br/developers/pt/docs/webhooks
 
+**Documentação Resend (Email):**
+- Site: https://resend.com
+- Docs: https://resend.com/docs
+
 **Problemas Comuns:**
 - Webhook retorna 404: Servidor não está deployado
 - Pagamento não aparece: Verifique Access Token correto
 - Erro no cartão: Use exatamente os dados de teste acima
+- **Email não enviado:** Verifique se `RESEND_API_KEY` está configurado e se o email `from` está verificado.
 
 ---
 
