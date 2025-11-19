@@ -26,8 +26,13 @@ export async function handleCheckout(c: Context) {
       return c.json({ error: "Dados incompletos" }, 400);
     }
 
-    // 1. Determinar o Origin: Usamos a URL do Supabase como base para garantir que o Mercado Pago aceite.
-    let safeOrigin = SUPABASE_URL ? SUPABASE_URL.replace("/functions/v1", "") : "http://localhost:3000";
+    // 1. Determinar o Origin: Priorizamos o origin enviado pelo frontend (URL do Figma Make)
+    let safeOrigin = body.origin;
+    
+    if (!safeOrigin) {
+        // Fallback para a URL base do Supabase se o origin não for enviado
+        safeOrigin = SUPABASE_URL ? SUPABASE_URL.replace("/functions/v1", "") : "http://localhost:3000";
+    }
       
     // Limpar barra final se presente
     if (safeOrigin.endsWith('/')) {
@@ -97,7 +102,6 @@ export async function handleCheckout(c: Context) {
           number: body.phone.replace(/\D/g, "").substring(2),
         },
       },
-      // CORREÇÃO: Incluindo back_urls e auto_return no objeto preference
       back_urls: backUrls,
       auto_return: "approved",
       notification_url: `${SUPABASE_URL}/make-server-efd1629b/webhook`,
