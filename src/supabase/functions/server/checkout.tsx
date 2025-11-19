@@ -52,6 +52,21 @@ export async function handleCheckout(c: Context) {
         orderId 
       }, 503);
     }
+    
+    // --- CORREÇÃO: Garantir que o origin seja sempre definido ---
+    // Usamos o header 'x-forwarded-host' ou 'host' para construir o origin, 
+    // ou um fallback seguro para localhost se estiver em ambiente de desenvolvimento.
+    const host = c.req.header("x-forwarded-host") || c.req.header("host");
+    const protocol = c.req.header("x-forwarded-proto") || "http";
+    
+    // Se estiver rodando no Figma Make Preview ou local, o origin pode ser diferente.
+    // Usamos o origin do request se estiver disponível, caso contrário, construímos a partir do host.
+    const requestOrigin = c.req.header("origin") || c.req.header("referer") || `${protocol}://${host}`;
+    
+    // Fallback final para garantir que não seja undefined
+    const safeOrigin = requestOrigin.startsWith("http") ? requestOrigin : "http://localhost:5173";
+    
+    console.log("Using safeOrigin for back_urls:", safeOrigin);
 
     // Criar preferência de pagamento no Mercado Pago
     const preference = {
@@ -73,9 +88,9 @@ export async function handleCheckout(c: Context) {
         },
       },
       back_urls: {
-        success: `${c.req.header("origin") || c.req.header("referer") || "http://localhost:5173"}/pagamento-confirmado`,
-        failure: `${c.req.header("origin") || c.req.header("referer") || "http://localhost:5173"}/pagamento-falhou`,
-        pending: `${c.req.header("origin") || c.req.header("referer") || "http://localhost:5173"}/pagamento-pendente`,
+        success: `${safeOrigin}/pagamento-confirmado`,
+        failure: `${safeOrigin}/pagamento-falhou`,
+        pending: `${safeOrigin}/pagamento-pendente`,
       },
       auto_return: "approved",
       notification_url: `${Deno.env.get("SUPABASE_URL")}/functions/v1/make-server-efd1629b/webhook`,
@@ -96,6 +111,10 @@ export async function handleCheckout(c: Context) {
 
     if (!response.ok) {
       console.error("Mercado Pago API error:", data);
+      // Se o erro for sobre back_urls, lançamos a mensagem específica
+      if (data.message && data.message.includes("back_url.success must be defined")) {
+         throw new Error("Erro: back_url.success deve ser definido. Verifique a URL de origem.");
+      }
       throw new Error(data.message || "Erro ao criar preferência de pagamento");
     }
 
