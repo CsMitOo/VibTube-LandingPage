@@ -4,6 +4,7 @@ import { sendConfirmationEmail } from "./email.tsx"; // Import the new email uti
 
 // Você precisará configurar seu Access Token do Mercado Pago
 const MERCADO_PAGO_ACCESS_TOKEN = Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN");
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 
 interface CheckoutRequest {
   name: string;
@@ -26,14 +27,24 @@ export async function handleCheckout(c: Context) {
     }
 
     // 1. Determinar o Origin (Prioriza o valor enviado pelo frontend)
-    const safeOrigin = body.origin && body.origin.startsWith("http") 
+    let safeOrigin = body.origin && body.origin.startsWith("http") 
       ? body.origin 
-      : "http://localhost:5173"; // Fallback seguro se o frontend não enviar
+      : "http://localhost:5173"; 
 
-    if (!safeOrigin || safeOrigin === "http://localhost:5173") {
-        console.warn("Using fallback origin. Ensure the app is running on a public URL for production.");
+    // Se o origin for localhost, usamos a URL do Supabase como base para as back_urls,
+    // pois o Mercado Pago não aceita localhost.
+    if (safeOrigin.includes("localhost") && SUPABASE_URL) {
+        // Remove o /functions/v1 do SUPABASE_URL para obter a URL base do projeto
+        safeOrigin = SUPABASE_URL.replace("/functions/v1", "");
+        console.warn("Localhost detected. Using Supabase URL as safeOrigin for Mercado Pago back_urls:", safeOrigin);
+    } else if (safeOrigin.includes("localhost")) {
+        console.warn("Localhost detected, but SUPABASE_URL is missing. Using localhost, which may fail Mercado Pago validation.");
     }
     
+    if (!safeOrigin || !safeOrigin.startsWith("http")) {
+        throw new Error("Não foi possível determinar uma URL de origem válida para o Mercado Pago.");
+    }
+
     console.log("Using safeOrigin for back_urls:", safeOrigin);
 
     // Verificar se já existe assinatura ativa
@@ -90,7 +101,7 @@ export async function handleCheckout(c: Context) {
         pending: `${safeOrigin}/pagamento-pendente`,
       },
       auto_return: "approved",
-      notification_url: `${Deno.env.get("SUPABASE_URL")}/functions/v1/make-server-efd1629b/webhook`,
+      notification_url: `${SUPABASE_URL}/make-server-efd1629b/webhook`,
       external_reference: body.email,
     };
 
