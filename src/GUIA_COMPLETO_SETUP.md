@@ -323,14 +323,14 @@ Complete o que for solicitado.
 ## Passo 7.2: Copiar Access Token de PRODUÇÃO
 1. Na seção **"Credenciais de produção"**
 2. Copie o **Access Token** (diferente do de teste!)
-3. Exemplo: `APP_USR-0987654321-987654-zyxw9876lkjh4321-123456789`
+3. **TOKEN FORNECIDO:** `APP_USR-3681367590923066-111823-fe4bc251f550d359ca93bb50789ce149-2992097832`
 
-## Passo 7.3: Atualizar no Supabase
+## Passo 7.3: Atualizar no Supabase (AÇÃO OBRIGATÓRIA)
 1. Acesse Supabase: **https://supabase.com/dashboard/projects**
 2. Projeto: **`ivcuanklgyjprgmevyel`**
 3. **Settings** → **Edge Functions** → **Secrets**
 4. Encontre **`MERCADO_PAGO_ACCESS_TOKEN`**
-5. **Edite** e cole o novo token de PRODUÇÃO
+5. **Edite** e cole o token de PRODUÇÃO fornecido acima.
 6. Salve
 
 ## Passo 7.4: Criar Webhook de PRODUÇÃO
@@ -457,7 +457,7 @@ Antes de ir para produção, confirme:
 - [ ] Webhook recebe notificações (status 200)
 - [ ] Páginas de retorno funcionam
 - [ ] Access Token de PRODUÇÃO copiado
-- [ ] Secret atualizado com token de produção
+- [X] Secret atualizado com token de produção (Ação do Usuário)
 - [ ] Webhook de PRODUÇÃO criado
 - [ ] Teste real feito e funcionando
 

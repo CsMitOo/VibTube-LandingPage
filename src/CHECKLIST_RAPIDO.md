@@ -53,7 +53,7 @@ Webhook URL: https://ivcuanklgyjprgmevyel.supabase.co/functions/v1/make-server-e
 
 | Email | Resultado |
 |-------|-----------|
-| `teste@email.com` | ✅ Aprovado |
+| `usuario@email.com` | ✅ Aprovado |
 | `teste.pendente@email.com` | ⏳ Pendente |
 | `teste.falha@email.com` | ❌ Recusado |
 
@@ -86,10 +86,10 @@ CPF: 12345678909
 - [ ] Copie **Access Token**
 - [ ] ⚠️ Pode pedir validação de conta
 
-### 2️⃣ Atualizar Supabase
-- [ ] Supabase → Secrets
+### 2️⃣ Atualizar Supabase (AÇÃO OBRIGATÓRIA)
+- [ ] Supabase → Settings → Edge Functions → Secrets
 - [ ] Edite `MERCADO_PAGO_ACCESS_TOKEN`
-- [ ] Cole token de PRODUÇÃO
+- [ ] Cole o token de PRODUÇÃO: `APP_USR-3681367590923066-111823-fe4bc251f550d359ca93bb50789ce149-2992097832`
 
 ### 3️⃣ Criar Webhook de Produção
 - [ ] Mesma URL do webhook

@@ -11,7 +11,7 @@
 ## 🔐 1. Credenciais (Secrets do Supabase)
 
 ### Já Configuradas:
-- ✅ `MERCADO_PAGO_ACCESS_TOKEN` - Token de acesso do Mercado Pago
+- ✅ `MERCADO_PAGO_ACCESS_TOKEN` - Token de acesso do Mercado Pago (Atualmente configurado para Produção: `APP_USR-3681367590923066-111823-fe4bc251f550d359ca93bb50789ce149-2992097832`)
 
 ### Necessário Configurar para Emails:
 - ⚠️ `RESEND_API_KEY` - Chave de API do Resend (ou outro serviço de email)
@@ -172,7 +172,7 @@ CPF: 12345678909
 
 - [ ] Criar conta no Mercado Pago Developers
 - [ ] Copiar Access Token (Teste ou Produção)
-- [ ] Configurar no Supabase como `MERCADO_PAGO_ACCESS_TOKEN`
+- [X] Configurar no Supabase como `MERCADO_PAGO_ACCESS_TOKEN` (Ação do Usuário)
 - [ ] Criar Webhook no painel Mercado Pago
 - [ ] Colar URL do webhook
 - [ ] Testar com cartão de teste
