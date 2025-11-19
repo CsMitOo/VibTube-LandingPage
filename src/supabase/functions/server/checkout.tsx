@@ -29,16 +29,21 @@ export async function handleCheckout(c: Context) {
     // 1. Determinar o Origin (Prioriza o valor enviado pelo frontend)
     let safeOrigin = body.origin && body.origin.startsWith("http") 
       ? body.origin 
-      : "http://localhost:5173"; 
+      : (SUPABASE_URL ? SUPABASE_URL.replace("/functions/v1", "") : "http://localhost:3000"); 
+      
+    // Limpar barra final se presente
+    if (safeOrigin.endsWith('/')) {
+        safeOrigin = safeOrigin.slice(0, -1);
+    }
 
-    // Se o origin for localhost, usamos a URL do Supabase como base para as back_urls,
-    // pois o Mercado Pago não aceita localhost.
+    // Se o origin for localhost, usamos a URL base do Supabase como fallback obrigatório,
+    // pois o Mercado Pago não aceita localhost em produção/sandbox sem configuração especial.
     if (safeOrigin.includes("localhost") && SUPABASE_URL) {
-        // Remove o /functions/v1 do SUPABASE_URL para obter a URL base do projeto
         safeOrigin = SUPABASE_URL.replace("/functions/v1", "");
+        if (safeOrigin.endsWith('/')) {
+            safeOrigin = safeOrigin.slice(0, -1);
+        }
         console.warn("Localhost detected. Using Supabase URL as safeOrigin for Mercado Pago back_urls:", safeOrigin);
-    } else if (safeOrigin.includes("localhost")) {
-        console.warn("Localhost detected, but SUPABASE_URL is missing. Using localhost, which may fail Mercado Pago validation.");
     }
     
     if (!safeOrigin || !safeOrigin.startsWith("http")) {
@@ -76,6 +81,15 @@ export async function handleCheckout(c: Context) {
       }, 503);
     }
     
+    // Definir back_urls
+    const backUrls = {
+        success: `${safeOrigin}/pagamento-confirmado`,
+        failure: `${safeOrigin}/pagamento-falhou`,
+        pending: `${safeOrigin}/pagamento-pendente`,
+    };
+
+    console.log("Sending back_urls to Mercado Pago:", backUrls);
+
     // Criar preferência de pagamento no Mercado Pago
     const preference = {
       items: [
@@ -95,11 +109,7 @@ export async function handleCheckout(c: Context) {
           number: body.phone.replace(/\D/g, "").substring(2),
         },
       },
-      back_urls: {
-        success: `${safeOrigin}/pagamento-confirmado`,
-        failure: `${safeOrigin}/pagamento-falhou`,
-        pending: `${safeOrigin}/pagamento-pendente`,
-      },
+      back_urls: backUrls,
       auto_return: "approved",
       notification_url: `${SUPABASE_URL}/make-server-efd1629b/webhook`,
       external_reference: body.email,
@@ -153,77 +163,6 @@ export async function handleCheckout(c: Context) {
     return c.json(
       { 
         error: error instanceof Error ? error.message : "Erro ao processar checkout",
-        details: error instanceof Error ? error.stack : undefined
-      },
-      500
-    );
-  }
-}
-
-export async function handleWebhook(c: Context) {
-  try {
-    const body = await c.req.json();
-    
-    console.log("Webhook received:", body);
-
-    // Verificar se é notificação de pagamento
-    if (body.type === "payment") {
-      const paymentId = body.data.id;
-
-      // Buscar informações do pagamento
-      const paymentResponse = await fetch(
-        `https://api.mercadopago.com/v1/payments/${paymentId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${MERCADO_PAGO_ACCESS_TOKEN}`,
-          },
-        }
-      );
-
-      const payment = await paymentResponse.json();
-      
-      console.log("Payment info:", { 
-        id: payment.id, 
-        status: payment.status, 
-        email: payment.external_reference 
-      });
-
-      // Atualizar status da assinatura
-      if (payment.status === "approved") {
-        const email = payment.external_reference;
-        const name = payment.payer?.first_name || "Cliente"; // Tenta obter o nome do objeto de pagamento
-        const orderId = payment.id;
-
-        await kv.set(`subscription:${email}`, {
-          email,
-          name,
-          status: "active",
-          planType: "annual",
-          startDate: new Date().toISOString(),
-          endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-          paymentId: payment.id,
-          updatedAt: new Date().toISOString(),
-        });
-
-        console.log("Subscription activated for:", email);
-        
-        // 🚀 ENVIAR EMAIL DE CONFIRMAÇÃO
-        try {
-          await sendConfirmationEmail({ to: email, name: name, orderId: orderId });
-          console.log(`Email confirmation process initiated for ${email}.`);
-        } catch (emailError) {
-          // Loga o erro do email, mas não falha o webhook
-          console.error("🚨 FAILED TO SEND CONFIRMATION EMAIL:", emailError);
-        }
-      }
-    }
-
-    return c.json({ success: true });
-  } catch (error) {
-    console.error("Webhook error:", error);
-    return c.json(
-      { 
-        error: error instanceof Error ? error.message : "Erro ao processar webhook",
         details: error instanceof Error ? error.stack : undefined
       },
       500
