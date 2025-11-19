@@ -13,8 +13,8 @@ interface CheckoutModalProps {
 export function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  // Alterado para false para usar o fluxo real do Mercado Pago por padrão
-  const [demoMode, setDemoMode] = useState(false); 
+  // Alterado para TRUE para usar o fluxo de demonstração por padrão, contornando o erro de URL do Mercado Pago no ambiente de preview.
+  const [demoMode, setDemoMode] = useState(true); 
   const [formData, setFormData] = useState({
     name: "",
     email: "",
