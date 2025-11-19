@@ -11,18 +11,30 @@ interface CheckoutRequest {
   phone: string;
   planType: string;
   amount: number;
+  origin?: string; // Adicionado para receber o origin do frontend
 }
 
 export async function handleCheckout(c: Context) {
   try {
     const body: CheckoutRequest = await c.req.json();
     
-    console.log("Checkout request received:", { email: body.email, planType: body.planType });
+    console.log("Checkout request received:", { email: body.email, planType: body.planType, receivedOrigin: body.origin });
 
     // Validar dados
     if (!body.name || !body.email || !body.phone || !body.amount) {
       return c.json({ error: "Dados incompletos" }, 400);
     }
+
+    // 1. Determinar o Origin (Prioriza o valor enviado pelo frontend)
+    const safeOrigin = body.origin && body.origin.startsWith("http") 
+      ? body.origin 
+      : "http://localhost:5173"; // Fallback seguro se o frontend não enviar
+
+    if (!safeOrigin || safeOrigin === "http://localhost:5173") {
+        console.warn("Using fallback origin. Ensure the app is running on a public URL for production.");
+    }
+    
+    console.log("Using safeOrigin for back_urls:", safeOrigin);
 
     // Verificar se já existe assinatura ativa
     const existingSubscription = await kv.get(`subscription:${body.email}`);
@@ -53,21 +65,6 @@ export async function handleCheckout(c: Context) {
       }, 503);
     }
     
-    // --- CORREÇÃO: Garantir que o origin seja sempre definido ---
-    // Usamos o header 'x-forwarded-host' ou 'host' para construir o origin, 
-    // ou um fallback seguro para localhost se estiver em ambiente de desenvolvimento.
-    const host = c.req.header("x-forwarded-host") || c.req.header("host");
-    const protocol = c.req.header("x-forwarded-proto") || "http";
-    
-    // Se estiver rodando no Figma Make Preview ou local, o origin pode ser diferente.
-    // Usamos o origin do request se estiver disponível, caso contrário, construímos a partir do host.
-    const requestOrigin = c.req.header("origin") || c.req.header("referer") || `${protocol}://${host}`;
-    
-    // Fallback final para garantir que não seja undefined
-    const safeOrigin = requestOrigin.startsWith("http") ? requestOrigin : "http://localhost:5173";
-    
-    console.log("Using safeOrigin for back_urls:", safeOrigin);
-
     // Criar preferência de pagamento no Mercado Pago
     const preference = {
       items: [

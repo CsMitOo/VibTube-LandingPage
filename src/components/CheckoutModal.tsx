@@ -61,6 +61,8 @@ export function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
             phone: formData.phone,
             planType: "annual",
             amount: 129.90,
+            // ENVIANDO O ORIGIN DO FRONTEND
+            origin: window.location.origin, 
           }),
         }
       );
