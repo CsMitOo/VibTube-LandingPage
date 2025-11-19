@@ -13,7 +13,8 @@ interface CheckoutModalProps {
 export function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [demoMode, setDemoMode] = useState(true); // Ativado por padrão
+  // Alterado para false para usar o fluxo real do Mercado Pago por padrão
+  const [demoMode, setDemoMode] = useState(false); 
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -30,7 +31,7 @@ export function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
     setError("");
 
     try {
-      // Modo demonstração
+      // Modo demonstração (apenas se ativado manualmente)
       if (demoMode) {
         await new Promise(resolve => setTimeout(resolve, 1500));
         
@@ -45,6 +46,7 @@ export function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
         return;
       }
 
+      // --- Fluxo Real do Mercado Pago ---
       const response = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-efd1629b/checkout`,
         {
@@ -73,7 +75,7 @@ export function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
         throw new Error(data.error || "Erro ao processar pagamento");
       }
 
-      // Redirecionar para URL de pagamento
+      // Redirecionar para URL de pagamento do Mercado Pago
       if (data.paymentUrl) {
         window.location.href = data.paymentUrl;
       } else {
