@@ -3,6 +3,7 @@ import { cors } from "npm:hono/cors";
 import { logger } from "npm:hono/logger";
 import * as kv from "./kv_store.tsx";
 import { handleCheckout, handleWebhook } from "./checkout.tsx";
+import { handleTestCheckout } from "./checkout_test.tsx"; // Importando a nova função
 
 const app = new Hono();
 
@@ -26,8 +27,11 @@ app.get("/make-server-efd1629b/health", (c) => {
   return c.json({ status: "ok" });
 });
 
-// Checkout endpoint
+// Checkout endpoint (R$ 129,90)
 app.post("/make-server-efd1629b/checkout", handleCheckout);
+
+// Checkout de Teste (R$ 1,00)
+app.post("/make-server-efd1629b/checkout-test", handleTestCheckout);
 
 // Webhook endpoint for payment notifications
 app.post("/make-server-efd1629b/webhook", handleWebhook);

@@ -1,4 +1,4 @@
-import { X, RefreshCw } from "lucide-react";
+import { X, RefreshCw, DollarSign } from "lucide-react";
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -25,13 +25,13 @@ export function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
 
   if (!isOpen) return null;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleCheckout = async (e: React.FormEvent, isTest: boolean = false) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
     try {
-      // Modo demonstração (apenas se ativado manualmente)
+      // Modo demonstração
       if (demoMode) {
         await new Promise(resolve => setTimeout(resolve, 1500));
         
@@ -47,8 +47,14 @@ export function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
       }
 
       // --- Fluxo Real do Mercado Pago ---
+      const endpoint = isTest 
+        ? `/make-server-efd1629b/checkout-test` // R$ 1,00
+        : `/make-server-efd1629b/checkout`; // R$ 129,90
+        
+      const amount = isTest ? 1.00 : 129.90;
+
       const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-efd1629b/checkout`,
+        `https://${projectId}.supabase.co/functions/v1${endpoint}`,
         {
           method: "POST",
           headers: {
@@ -59,9 +65,8 @@ export function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
             name: formData.name,
             email: formData.email,
             phone: formData.phone,
-            planType: "annual",
-            amount: 129.90,
-            // ENVIANDO O ORIGIN DO FRONTEND
+            planType: isTest ? "test_1_real" : "annual",
+            amount: amount,
             origin: window.location.origin, 
           }),
         }
@@ -70,18 +75,14 @@ export function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
       const data = await response.json();
 
       if (!response.ok) {
-        // Se for erro 404, significa que o servidor não está disponível
         if (response.status === 404) {
           throw new Error("Servidor não disponível (404). Verifique o deploy da Edge Function.");
         }
         
-        // Se o erro vier do backend (Edge Function)
         if (data.error) {
-            // Erro específico do Mercado Pago sobre back_urls
             if (data.error.includes("back_url.success must be defined")) {
                 throw new Error("Erro de configuração de URL: O Mercado Pago rejeitou a URL de retorno. Verifique se o token está correto e se a URL de preview é pública.");
             }
-            // Erro de token
             if (data.error.includes("MERCADO_PAGO_ACCESS_TOKEN not configured")) {
                 throw new Error("Erro de configuração: MERCADO_PAGO_ACCESS_TOKEN não está configurado no Supabase Secrets.");
             }
@@ -101,7 +102,6 @@ export function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
       console.error("Checkout error:", err);
       const errorMessage = err instanceof Error ? err.message : "Erro ao processar checkout";
       
-      // Se for erro de conexão, sugerir modo demo
       if (errorMessage.includes("Failed to fetch") || errorMessage.includes("NetworkError")) {
         setError("⚠️ Falha na conexão com o servidor. Ative o Modo Demo para testar ou verifique o deploy da Edge Function.");
       } else {
@@ -141,7 +141,7 @@ export function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
         </div>
 
         {/* Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleCheckout} className="p-6 space-y-4">
           {/* Demo Mode Info */}
           {demoMode ? (
             <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-3">
@@ -156,10 +156,10 @@ export function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
           ) : (
             <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-3">
               <p className="text-xs text-orange-400 text-center">
-                💳 Modo Teste/Real Ativo
+                💳 Modo Produção Ativo
                 <br />
                 <span className="text-gray-500">
-                  Você será redirecionado para o Mercado Pago. Use os cartões de teste.
+                  Você será redirecionado para o Mercado Pago.
                 </span>
               </p>
             </div>
@@ -251,6 +251,24 @@ export function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
           >
             {loading ? "Processando..." : "Continuar para Pagamento"}
           </Button>
+          
+          {/* Test Button (R$ 1,00) - Visible only in Real Mode */}
+          {!demoMode && (
+            <Button
+              type="button"
+              onClick={(e) => handleCheckout(e, true)}
+              disabled={loading}
+              variant="outline"
+              className="w-full border-orange-500/30 hover:border-orange-500/50 text-orange-400 h-10 text-sm mt-2"
+            >
+              {loading ? "Processando Teste..." : (
+                <>
+                  <DollarSign className="w-4 h-4 mr-2" />
+                  Teste de Produção (R$ 1,00)
+                </>
+              )}
+            </Button>
+          )}
 
           {/* Demo Mode Toggle */}
           <Button
