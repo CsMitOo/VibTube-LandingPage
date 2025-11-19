@@ -97,6 +97,7 @@ export async function handleCheckout(c: Context) {
           number: body.phone.replace(/\D/g, "").substring(2),
         },
       },
+      // CORREÇÃO: Incluindo back_urls e auto_return no objeto preference
       back_urls: backUrls,
       auto_return: "approved",
       notification_url: `${SUPABASE_URL}/make-server-efd1629b/webhook`,
