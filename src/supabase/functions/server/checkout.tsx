@@ -117,11 +117,21 @@ export async function handleCheckout(c: Context) {
 
     if (!response.ok) {
       console.error("Mercado Pago API error:", data);
-      // Se o erro for sobre back_urls, lançamos a mensagem específica
-      if (data.message && data.message.includes("back_url.success must be defined")) {
-         throw new Error("Erro: back_url.success deve ser definido. Verifique a URL de origem.");
+      
+      // Tenta extrair a mensagem de erro mais específica
+      let errorMessage = data.message || "Erro ao criar preferência de pagamento";
+      
+      if (data.cause && data.cause.length > 0 && data.cause[0].description) {
+          errorMessage = data.cause[0].description;
       }
-      throw new Error(data.message || "Erro ao criar preferência de pagamento");
+      
+      // Se o erro for sobre back_urls, lançamos a mensagem específica
+      if (errorMessage.includes("back_url.success must be defined")) {
+         throw new Error("Erro de URL: O Mercado Pago rejeitou a URL de retorno. Verifique se o token está correto e se a URL de preview é pública.");
+      }
+      
+      // Lançar o erro mais específico encontrado
+      throw new Error(`Erro do Mercado Pago: ${errorMessage}`);
     }
 
     // Salvar informações do pedido (usando o ID da preferência)
