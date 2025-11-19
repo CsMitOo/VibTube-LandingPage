@@ -2,7 +2,6 @@ import { Hono } from "npm:hono";
 import { cors } from "npm:hono/cors";
 import { logger } from "npm:hono/logger";
 import { handleCheckout, handleWebhook } from "./checkout.tsx";
-import { handleTestCheckout } from "./checkout_test.tsx";
 
 const app = new Hono();
 
@@ -28,9 +27,6 @@ app.get("/make-server-efd1629b/health", (c) => {
 
 // Checkout endpoint (R$ 129,90)
 app.post("/make-server-efd1629b/checkout", handleCheckout);
-
-// Checkout de Teste (R$ 1,00)
-app.post("/make-server-efd1629b/checkout-test", handleTestCheckout);
 
 // Webhook endpoint for payment notifications
 app.post("/make-server-efd1629b/webhook", handleWebhook);

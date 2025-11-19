@@ -1,4 +1,4 @@
-import { X, RefreshCw, DollarSign } from "lucide-react";
+import { X, DollarSign } from "lucide-react";
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -13,45 +13,23 @@ interface CheckoutModalProps {
 export function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  // Alterado para TRUE para usar o fluxo de demonstração por padrão, contornando o erro de URL do Mercado Pago no ambiente de preview.
-  const [demoMode, setDemoMode] = useState(true); 
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
   });
 
-  console.log("CheckoutModal render - isOpen:", isOpen);
-
   if (!isOpen) return null;
 
-  const handleCheckout = async (e: React.FormEvent, isTest: boolean = false) => {
+  const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
     try {
-      // Modo demonstração
-      if (demoMode) {
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        // Simular diferentes resultados baseado no email
-        if (formData.email.includes("pendente")) {
-          window.location.href = "/pagamento-pendente";
-        } else if (formData.email.includes("falha")) {
-          window.location.href = "/pagamento-falhou";
-        } else {
-          window.location.href = "/pagamento-confirmado";
-        }
-        return;
-      }
-
-      // --- Fluxo Real do Mercado Pago ---
-      const endpoint = isTest 
-        ? `/make-server-efd1629b/checkout-test` // R$ 1,00
-        : `/make-server-efd1629b/checkout`; // R$ 129,90
-        
-      const amount = isTest ? 1.00 : 129.90;
+      // --- Fluxo Real do Mercado Pago (R$ 129,90) ---
+      const endpoint = `/make-server-efd1629b/checkout`;
+      const amount = 129.90;
 
       const response = await fetch(
         `https://${projectId}.supabase.co/functions/v1${endpoint}`,
@@ -65,7 +43,7 @@ export function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
             name: formData.name,
             email: formData.email,
             phone: formData.phone,
-            planType: isTest ? "test_1_real" : "annual",
+            planType: "annual",
             amount: amount,
             origin: window.location.origin, 
           }),
@@ -103,7 +81,7 @@ export function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
       const errorMessage = err instanceof Error ? err.message : "Erro ao processar checkout";
       
       if (errorMessage.includes("Failed to fetch") || errorMessage.includes("NetworkError")) {
-        setError("⚠️ Falha na conexão com o servidor. Ative o Modo Demo para testar ou verifique o deploy da Edge Function.");
+        setError("⚠️ Falha na conexão com o servidor. Verifique o deploy da Edge Function.");
       } else {
         setError(errorMessage);
       }
@@ -142,28 +120,16 @@ export function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
 
         {/* Body */}
         <form onSubmit={handleCheckout} className="p-6 space-y-4">
-          {/* Demo Mode Info */}
-          {demoMode ? (
-            <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-3">
-              <p className="text-xs text-purple-400 text-center">
-                🎭 Modo Demonstração Ativo
-                <br />
-                <span className="text-gray-500">
-                  Use email com "pendente" ou "falha" para simular diferentes resultados
-                </span>
-              </p>
-            </div>
-          ) : (
-            <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-3">
-              <p className="text-xs text-orange-400 text-center">
-                💳 Modo Produção Ativo
-                <br />
-                <span className="text-gray-500">
-                  Você será redirecionado para o Mercado Pago.
-                </span>
-              </p>
-            </div>
-          )}
+          
+          <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-3">
+            <p className="text-xs text-orange-400 text-center">
+              💳 Modo Produção Ativo
+              <br />
+              <span className="text-gray-500">
+                Você será redirecionado para o Mercado Pago para finalizar a compra de R$ 129,90.
+              </span>
+            </p>
+          </div>
 
           {/* Nome */}
           <div className="space-y-2">
@@ -252,37 +218,8 @@ export function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
             {loading ? "Processando..." : "Continuar para Pagamento"}
           </Button>
           
-          {/* Test Button (R$ 1,00) - Visible only in Real Mode */}
-          {!demoMode && (
-            <Button
-              type="button"
-              onClick={(e) => handleCheckout(e, true)}
-              disabled={loading}
-              variant="outline"
-              className="w-full border-orange-500/30 hover:border-orange-500/50 text-orange-400 h-10 text-sm mt-2"
-            >
-              {loading ? "Processando Teste..." : (
-                <>
-                  <DollarSign className="w-4 h-4 mr-2" />
-                  Teste de Produção (R$ 1,00)
-                </>
-              )}
-            </Button>
-          )}
-
-          {/* Demo Mode Toggle */}
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => setDemoMode(!demoMode)}
-            className="w-full text-xs text-gray-500 hover:text-purple-400 transition-colors h-auto py-1"
-          >
-            <RefreshCw className="w-3 h-3 mr-2" />
-            {demoMode ? "✓ Modo Demo Ativo (Clique para desativar)" : "Ativar Modo Demo (Para testes rápidos)"}
-          </Button>
-
           {/* Info */}
-          <p className="text-xs text-gray-500 text-center">
+          <p className="text-xs text-gray-500 text-center mt-4">
             Pagamento seguro via Mercado Pago
             <br />
             Aceita PIX, Cartão de Crédito e Boleto
