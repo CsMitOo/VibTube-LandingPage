@@ -183,9 +183,10 @@ export async function handleWebhook(c: Context) {
         // 🚀 ENVIAR EMAIL DE CONFIRMAÇÃO
         try {
           await sendConfirmationEmail({ to: email, name: name, orderId: orderId });
+          console.log(`Email confirmation process initiated for ${email}.`);
         } catch (emailError) {
-          console.error("Failed to send confirmation email:", emailError);
-          // Continua processando o webhook mesmo se o email falhar
+          // Loga o erro do email, mas não falha o webhook
+          console.error("🚨 FAILED TO SEND CONFIRMATION EMAIL:", emailError);
         }
       }
     }
