@@ -167,3 +167,33 @@ export async function handleCheckout(c: Context) {
     );
   }
 }
+
+// Função de Webhook (Placeholder, precisa ser implementada para processar notificações)
+export async function handleWebhook(c: Context) {
+    try {
+        const body = await c.req.json();
+        const topic = c.req.query('topic');
+        const id = c.req.query('id');
+
+        console.log(`Webhook received: Topic=${topic}, ID=${id}`);
+        
+        if (topic === 'payment' && id) {
+            // Aqui você faria a lógica para buscar o pagamento no MP e atualizar o status no KV store
+            // Exemplo: const paymentDetails = await fetchPaymentDetails(id);
+            // if (paymentDetails.status === 'approved') {
+            //     await kv.set(`subscription:${paymentDetails.email}`, { status: 'active', ... });
+            //     await sendConfirmationEmail({ to: paymentDetails.email, name: paymentDetails.name, orderId: id });
+            // }
+            
+            // Retornar 200 OK para o Mercado Pago
+            return c.json({ status: "Notification received and processed (Placeholder)" }, 200);
+        }
+
+        return c.json({ status: "Notification received, but not processed (Missing ID or Topic)" }, 200);
+
+    } catch (error) {
+        console.error("Webhook processing error:", error);
+        // Retornar 500 para que o Mercado Pago tente novamente
+        return c.json({ error: "Internal Server Error during webhook processing" }, 500);
+    }
+}

@@ -1,9 +1,8 @@
 import { Hono } from "npm:hono";
 import { cors } from "npm:hono/cors";
 import { logger } from "npm:hono/logger";
-import * as kv from "./kv_store.tsx";
 import { handleCheckout, handleWebhook } from "./checkout.tsx";
-import { handleTestCheckout } from "./checkout_test.tsx"; // Importando a nova função
+import { handleTestCheckout } from "./checkout_test.tsx";
 
 const app = new Hono();
 
