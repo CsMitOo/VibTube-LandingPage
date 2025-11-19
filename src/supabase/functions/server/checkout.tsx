@@ -12,7 +12,7 @@ interface CheckoutRequest {
   phone: string;
   planType: string;
   amount: number;
-  origin?: string; // Adicionado para receber o origin do frontend
+  origin?: string; // Mantemos o campo, mas não o usamos para back_urls
 }
 
 export async function handleCheckout(c: Context) {
@@ -26,13 +26,8 @@ export async function handleCheckout(c: Context) {
       return c.json({ error: "Dados incompletos" }, 400);
     }
 
-    // 1. Determinar o Origin: Priorizamos o origin enviado pelo frontend (URL do Figma Make)
-    let safeOrigin = body.origin;
-    
-    if (!safeOrigin) {
-        // Fallback para a URL base do Supabase se o origin não for enviado
-        safeOrigin = SUPABASE_URL ? SUPABASE_URL.replace("/functions/v1", "") : "http://localhost:3000";
-    }
+    // 1. Determinar o Origin: Usamos a URL base do Supabase para garantir que o Mercado Pago aceite.
+    let safeOrigin = SUPABASE_URL ? SUPABASE_URL.replace("/functions/v1", "") : "http://localhost:3000";
       
     // Limpar barra final se presente
     if (safeOrigin.endsWith('/')) {
@@ -43,7 +38,7 @@ export async function handleCheckout(c: Context) {
         throw new Error("Não foi possível determinar uma URL de origem válida para o Mercado Pago.");
     }
 
-    console.log("Using safeOrigin for back_urls:", safeOrigin);
+    console.log("Using safeOrigin (Supabase Base URL) for back_urls:", safeOrigin);
 
     // Verificar se já existe assinatura ativa
     const existingSubscription = await kv.get(`subscription:${body.email}`);
@@ -74,7 +69,7 @@ export async function handleCheckout(c: Context) {
       }, 503);
     }
     
-    // Definir back_urls
+    // Definir back_urls usando a URL base do Supabase
     const backUrls = {
         success: `${safeOrigin}/pagamento-confirmado`,
         failure: `${safeOrigin}/pagamento-falhou`,
