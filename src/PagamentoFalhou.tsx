@@ -1,5 +1,10 @@
 import { PaymentFailure } from "./components/PaymentFailure";
+import { PaymentLayout } from "./components/PaymentLayout";
 
 export default function PagamentoFalhou() {
-  return <PaymentFailure />;
+  return (
+    <PaymentLayout>
+      <PaymentFailure />
+    </PaymentLayout>
+  );
 }

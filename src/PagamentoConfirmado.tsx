@@ -1,4 +1,5 @@
 import { PaymentSuccessSection } from "./components/PaymentSuccessSection";
+import { PaymentLayout } from "./components/PaymentLayout";
 import { useEffect } from "react";
 
 export default function PagamentoConfirmado() {
@@ -6,6 +7,9 @@ export default function PagamentoConfirmado() {
     document.title = "Pagamento Confirmado - VIBTUBE ACADEMY";
   }, []);
 
-  // Renderiza apenas a seção de sucesso em tela cheia, sem Header/Footer
-  return <PaymentSuccessSection />;
+  return (
+    <PaymentLayout>
+      <PaymentSuccessSection />
+    </PaymentLayout>
+  );
 }
