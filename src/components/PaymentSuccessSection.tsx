@@ -2,17 +2,14 @@ import { CheckCircle, ArrowRight, Mail, ExternalLink, MessageCircle } from "luci
 import { Button } from "./ui/button";
 import { useEffect } from "react";
 
-export function PaymentSuccess() {
+export function PaymentSuccessSection() {
   useEffect(() => {
     // Log success for debugging
-    console.log("✅ Página de Pagamento Confirmado renderizada");
-    
-    // Update page title
-    document.title = "Pagamento Confirmado - VIBTUBE ACADEMY";
+    console.log("✅ Seção de Pagamento Confirmado renderizada");
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center p-4">
+    <section className="py-12 md:py-20 px-4 lg:px-8 flex items-center justify-center min-h-[80vh]">
       <div className="max-w-2xl w-full">
         <div className="bg-gradient-to-br from-[#1a1a1a] to-[#111111] border-2 border-green-500/50 rounded-3xl p-8 md:p-12 shadow-2xl shadow-green-500/20 text-center space-y-6">
           {/* Success Icon */}
@@ -110,6 +107,6 @@ export function PaymentSuccess() {
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
