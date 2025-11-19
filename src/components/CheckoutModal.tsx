@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { X, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -85,7 +85,7 @@ export function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
       
       // Se for erro de conexão, sugerir modo demo
       if (errorMessage.includes("Failed to fetch") || errorMessage.includes("NetworkError") || errorMessage.includes("404")) {
-        setError("⚠️ Servidor não disponível. Ative o Modo Demo abaixo para testar o sistema.");
+        setError("⚠️ Servidor não disponível. Ative o Modo Demo abaixo para testar.");
       } else {
         setError(errorMessage);
       }
@@ -125,7 +125,7 @@ export function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
         {/* Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {/* Demo Mode Info */}
-          {demoMode && (
+          {demoMode ? (
             <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-3">
               <p className="text-xs text-purple-400 text-center">
                 🎭 Modo Demonstração Ativo
@@ -135,16 +135,13 @@ export function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
                 </span>
               </p>
             </div>
-          )}
-
-          {/* Warning when Demo Mode is OFF */}
-          {!demoMode && (
+          ) : (
             <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-3">
               <p className="text-xs text-orange-400 text-center">
-                ⚠️ Modo Real Ativo
+                💳 Modo Teste/Real Ativo
                 <br />
                 <span className="text-gray-500">
-                  Requer servidor Supabase configurado. Se houver erro, ative o Modo Demo abaixo.
+                  Você será redirecionado para o Mercado Pago. Use os cartões de teste.
                 </span>
               </p>
             </div>
@@ -238,13 +235,15 @@ export function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
           </Button>
 
           {/* Demo Mode Toggle */}
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={() => setDemoMode(!demoMode)}
-            className="w-full text-xs text-gray-500 hover:text-purple-400 transition-colors"
+            className="w-full text-xs text-gray-500 hover:text-purple-400 transition-colors h-auto py-1"
           >
-            {demoMode ? "✓ Modo Demo Ativo" : "Ativar Modo Demo"}
-          </button>
+            <RefreshCw className="w-3 h-3 mr-2" />
+            {demoMode ? "✓ Modo Demo Ativo (Clique para desativar)" : "Ativar Modo Demo (Para testes rápidos)"}
+          </Button>
 
           {/* Info */}
           <p className="text-xs text-gray-500 text-center">
