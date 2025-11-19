@@ -30,7 +30,7 @@ Webhook URL: https://ivcuanklgyjprgmevyel.supabase.co/functions/v1/make-server-e
   - Edite `MERCADO_PAGO_ACCESS_TOKEN`
   - Cole o novo token
 
-### 4️⃣ Criar Webhook
+### 4️⃣ Criar Webhook (Modo Teste)
 - [ ] No painel: Menu → **"Webhooks"**
 - [ ] Clique: **"Criar webhook"**
 - [ ] Cole URL:
@@ -91,8 +91,12 @@ CPF: 12345678909
 - [ ] Edite `MERCADO_PAGO_ACCESS_TOKEN`
 - [ ] Cole o token de PRODUÇÃO: `APP_USR-3681367590923066-111823-fe4bc251f550d359ca93bb50789ce149-2992097832`
 
-### 3️⃣ Criar Webhook de Produção
-- [ ] Mesma URL do webhook
+### 3️⃣ Criar Webhook de Produção (MESMA URL!)
+- [ ] Painel MP → Webhooks → **"Criar webhook"**
+- [ ] Cole a URL:
+  ```
+  https://ivcuanklgyjprgmevyel.supabase.co/functions/v1/make-server-efd1629b/webhook
+  ```
 - [ ] Modo: **PRODUÇÃO**
 - [ ] Salvar
 
