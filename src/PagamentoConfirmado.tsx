@@ -4,7 +4,7 @@ import { PaymentSuccessSection } from "./components/PaymentSuccessSection";
 import { useEffect } from "react";
 
 export default function PagamentoConfirmado() {
-  // Mock function for Header, as we don't need to open the checkout modal here
+  // Função mock para o Header, pois não queremos abrir o modal de checkout aqui
   const handleNoop = () => {};
 
   useEffect(() => {
@@ -13,7 +13,6 @@ export default function PagamentoConfirmado() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
-      {/* Pass a no-op function since we don't want to open checkout from the success page header */}
       <Header onOpenCheckout={handleNoop} />
       <main>
         <PaymentSuccessSection />
