@@ -89,7 +89,7 @@ export function PaymentSuccess() {
             </Button>
 
             <Button 
-              onClick={() => window.location.hash = ''}
+              onClick={() => window.location.pathname = '/'}
               size="lg" 
               variant="outline"
               className="w-full border-purple-500/30 hover:border-purple-500/50 text-white rounded-full py-6 bg-transparent"
